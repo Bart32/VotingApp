@@ -27,11 +27,12 @@ namespace VoteApp
             else if (userLogin.Equals("User")) DisplayUserMenu();
         }
 
+        //while true w momencie wybrania wartosci break;
         private void DisplayAdminMenu()
         {
             Console.WriteLine("---------- Wybierz co chcesz zrobic ----------");
             Console.WriteLine("1. Dodaj kandydata");
-            Console.WriteLine("2. Sfałszuj wybory");
+            Console.WriteLine("2. Usun kandydata");
             Console.WriteLine("3. Zobacz wyniki");
             Console.WriteLine("4. Wyloguj się");
             switch (Console.ReadLine())
@@ -40,11 +41,15 @@ namespace VoteApp
                     AddCandidate();
                     break;
                 case "2":
+                    RemoveCandidate();
                     break;
                 case "3":
                     ShowCandidates();
                     break;
                 case "4":
+                    DisplayMenu();
+                    break;
+                default:
                     DisplayMenu();
                     break;
             }
@@ -62,36 +67,58 @@ namespace VoteApp
 
         private void AddCandidate()
         {
-            Console.WriteLine("Podaj imie kandydata");
-            string name = Console.ReadLine();
-
-            Console.WriteLine("Podaj nazwisko kandydata");
-            string surname = Console.ReadLine();
-
-            using (CandidateContext candidateContext = new CandidateContext())
+            while (true)
             {
-                if (name != null & surname != null)
+                Console.WriteLine("Podaj imie kandydata");
+                var name = Console.ReadLine();
+
+                Console.WriteLine("Podaj nazwisko kandydata");
+                var surname = Console.ReadLine();
+
+                using (CandidateContext candidateContext = new CandidateContext())
                 {
-                    candidateContext.Add(new Candidate() { Name = name, Surname = surname });
-                    candidateContext.SaveChanges();
-                    DisplayAdminMenu();
+                    if (!string.IsNullOrWhiteSpace(name) & !string.IsNullOrWhiteSpace(surname))
+                    {
+                        candidateContext.Add(new Candidate() { Name = name, Surname = surname });
+                        candidateContext.SaveChanges();
+                        DisplayAdminMenu();
+                        break;
+                    }
+                    else Console.WriteLine("---------- Bledne dane kandydata ----------");
                 }
-                else Console.WriteLine("---------- Bledne dane kandydata ----------");
             }
+        }
+
+        private void RemoveCandidate()
+        {
+            while (true)
+            {
+                    Console.WriteLine("Podaj numer kandydata");
+                    int number = Convert.ToInt32(Console.ReadLine());
+
+                    using (CandidateContext candidateContext = new CandidateContext())
+                    {
+                        if (number > 0)
+                        {
+                            candidateContext.Remove(new Candidate() { Id = number });
+                            candidateContext.SaveChanges();
+                            DisplayAdminMenu();
+                            break;
+                        }
+                        else Console.WriteLine("---------- Bledne dane kandydata ----------");
+                    }
         }
 
         private void ShowCandidates()
         {
             using (CandidateContext candidateContext = new CandidateContext())
             {
-                List<Candidate> candidates = candidateContext.Candidate.ToList();
+                var candidates = candidateContext.Candidate.ToArray();
                 foreach (var candidate in candidates)
                 {
-                    
-                    Console.WriteLine("Kandydate nr " + candidate.Id);
-                    Console.WriteLine(candidate.Name);
-                    Console.WriteLine(candidate.Surname);
-                    Console.WriteLine("--------------------------------" /n);
+                    Console.WriteLine("--- Kandydat nr " + candidate.Id + " ---");
+                    Console.WriteLine("{1} {0}", candidate.Name, candidate.Surname);
+                    Console.WriteLine("--------------------------------" + Environment.NewLine);
                 }
                 DisplayAdminMenu();
             }
